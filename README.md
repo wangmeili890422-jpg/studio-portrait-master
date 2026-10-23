@@ -4,8 +4,9 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-8B6F47.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-1.0.0-8B6F47.svg)](CHANGELOG.md)
+[![Online Docs](https://img.shields.io/badge/Online%20Docs-docs%2Findex.html-8B6F47)](docs/index.html)
 
-📖 **在线介绍与使用页 → [`docs/index.html`](docs/index.html)**（样例画廊 · 模式路由 · 提示词一键复制）
+> 📖 **想先看效果？** 打开 **[在线介绍与使用页 `docs/index.html`](docs/index.html)** —— 9 张生成样例画廊 + 5 类模式路由 + 提示词一键复制。
 
 ## 支持范围
 
