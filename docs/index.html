@@ -1,0 +1,727 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Studio Portrait Master — 亚洲人物肖像生成 Skill</title>
+<meta name="description" content="面向亚洲人物的高质量肖像与合影生成 Skill。五类人物模式，默认 4:3、简洁背景、完整露头、自然可信。">
+<style>
+  :root{
+    --bg:#fafaf9;
+    --surface:#ffffff;
+    --ink:#1c1917;
+    --ink-2:#44403c;
+    --muted:#78716c;
+    --faint:#a8a29e;
+    --line:#e7e5e4;
+    --line-2:#d6d3d1;
+    --accent:#8b6f47;
+    --accent-ink:#6d5638;
+    --accent-soft:#f5f0e8;
+    --ok:#4d7c0f;
+    --ok-soft:#f7fee7;
+    --no:#b91c1c;
+    --no-soft:#fef2f2;
+    --radius:14px;
+    --shadow:0 1px 2px rgba(28,25,23,.04), 0 8px 24px rgba(28,25,23,.05);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth; scroll-padding-top:72px}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--accent-ink); text-decoration:none}
+  a:hover{text-decoration:underline}
+  code,pre,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace}
+  code{
+    padding:.14em .4em; border-radius:5px; font-size:.875em;
+    background:var(--accent-soft); color:var(--accent-ink);
+  }
+
+  /* ---------- 布局 ---------- */
+  .wrap{max-width:1120px; margin:0 auto; padding:0 28px}
+  section{padding:72px 0; border-top:1px solid var(--line)}
+  section:first-of-type{border-top:0}
+  .eyebrow{
+    font-size:12px; font-weight:600; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--accent); margin:0 0 14px;
+  }
+  h1{font-size:clamp(34px,5.4vw,58px); line-height:1.08; letter-spacing:-.022em; margin:0 0 22px; font-weight:680}
+  h2{font-size:clamp(24px,3vw,32px); line-height:1.2; letter-spacing:-.015em; margin:0 0 14px; font-weight:650}
+  h3{font-size:17px; margin:0 0 6px; font-weight:620; letter-spacing:-.005em}
+  p{margin:0 0 14px; color:var(--ink-2)}
+  .lede{font-size:19px; line-height:1.65; color:var(--ink-2); max-width:660px}
+  .muted{color:var(--muted)}
+  .sec-head{max-width:680px; margin-bottom:38px}
+
+  /* ---------- 导航 ---------- */
+  .nav{
+    position:sticky; top:0; z-index:60;
+    background:rgba(250,250,249,.86); backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav-in{display:flex; align-items:center; gap:28px; height:60px}
+  .brand{display:flex; align-items:center; gap:9px; font-weight:650; font-size:15px; color:var(--ink); letter-spacing:-.01em}
+  .brand:hover{text-decoration:none}
+  .dot{width:9px; height:9px; border-radius:50%; background:var(--accent); flex:none}
+  .nav-links{display:flex; gap:22px; margin-left:auto; font-size:14px}
+  .nav-links a{color:var(--muted); padding:4px 0; border-bottom:1.5px solid transparent; transition:.15s}
+  .nav-links a:hover{color:var(--ink); text-decoration:none}
+  .nav-links a.on{color:var(--ink); border-bottom-color:var(--accent)}
+  .nav-ext{font-size:13.5px; padding:6px 13px; border:1px solid var(--line-2); border-radius:8px; color:var(--ink-2)}
+  .nav-ext:hover{border-color:var(--accent); text-decoration:none}
+  @media(max-width:860px){.nav-links{display:none}}
+
+  /* ---------- Hero ---------- */
+  .hero{padding:84px 0 68px}
+  .hero-top{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:24px}
+  .pill{
+    display:inline-flex; align-items:center; gap:6px;
+    font-size:12.5px; font-weight:550; padding:5px 11px; border-radius:999px;
+    border:1px solid var(--line-2); color:var(--ink-2); background:var(--surface);
+  }
+  .pill.accent{border-color:#d9c9ae; background:var(--accent-soft); color:var(--accent-ink)}
+  .stats{display:flex; flex-wrap:wrap; gap:44px; margin-top:44px; padding-top:32px; border-top:1px solid var(--line)}
+  .stat b{display:block; font-size:30px; font-weight:650; letter-spacing:-.02em; line-height:1.1}
+  .stat span{font-size:13.5px; color:var(--muted)}
+
+  /* ---------- 画廊 ---------- */
+  .filters{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:26px}
+  .chip{
+    font:inherit; font-size:13.5px; font-weight:520; cursor:pointer;
+    padding:7px 14px; border-radius:999px; border:1px solid var(--line-2);
+    background:var(--surface); color:var(--muted); transition:.15s;
+  }
+  .chip:hover{border-color:var(--accent); color:var(--ink)}
+  .chip.on{background:var(--ink); border-color:var(--ink); color:#fafaf9}
+  .gallery{display:grid; grid-template-columns:repeat(3,1fr); gap:20px}
+  .shot{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    overflow:hidden; box-shadow:var(--shadow); transition:transform .18s, box-shadow .18s, opacity .2s;
+  }
+  .shot:hover{transform:translateY(-3px); box-shadow:0 2px 4px rgba(28,25,23,.05), 0 14px 34px rgba(28,25,23,.09)}
+  .shot.hide{display:none}
+  .shot-img{position:relative; aspect-ratio:4/3; background:#f0efed; overflow:hidden; cursor:zoom-in}
+  .shot-img img{width:100%; height:100%; object-fit:cover; display:block}
+  .shot-img::after{
+    content:"点击放大"; position:absolute; inset:auto 8px 8px auto;
+    font-size:11px; padding:3px 8px; border-radius:6px;
+    background:rgba(28,25,23,.62); color:#fff; opacity:0; transition:.18s;
+  }
+  .shot:hover .shot-img::after{opacity:1}
+  .shot-body{padding:15px 16px 16px}
+  .shot-mode{font-size:11.5px; font-weight:600; letter-spacing:.05em; color:var(--accent); text-transform:uppercase}
+  .shot-body p{margin:6px 0 0; font-size:14px; color:var(--muted); line-height:1.55}
+  @media(max-width:900px){.gallery{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:600px){.gallery{grid-template-columns:1fr}}
+
+  /* ---------- 模式卡 ---------- */
+  .modes{display:grid; grid-template-columns:repeat(2,1fr); gap:16px}
+  .mode{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    padding:22px 24px; transition:.15s;
+  }
+  .mode:hover{border-color:var(--line-2); box-shadow:var(--shadow)}
+  .mode-k{font-size:12px; font-weight:600; letter-spacing:.06em; color:var(--accent); text-transform:uppercase}
+  .mode h3{margin:8px 0 8px; font-size:18px}
+  .mode p{font-size:14.5px; margin:0}
+  .mode-n{font-size:12.5px; color:var(--faint); margin-top:12px; padding-top:12px; border-top:1px dashed var(--line)}
+  @media(max-width:760px){.modes{grid-template-columns:1fr}}
+
+  /* ---------- 规则双栏 ---------- */
+  .rules{display:grid; grid-template-columns:1fr 1fr; gap:20px}
+  .rule-box{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:24px}
+  .rule-box h3{display:flex; align-items:center; gap:8px; margin-bottom:16px; font-size:16px}
+  .mark{width:20px; height:20px; border-radius:50%; display:inline-grid; place-items:center; font-size:11px; font-weight:700; flex:none}
+  .mark.y{background:var(--ok-soft); color:var(--ok)}
+  .mark.n{background:var(--no-soft); color:var(--no)}
+  .rule-box ul{margin:0; padding:0; list-style:none}
+  .rule-box li{font-size:14.5px; color:var(--ink-2); padding:7px 0 7px 0; border-bottom:1px solid var(--line)}
+  .rule-box li:last-child{border-bottom:0}
+  @media(max-width:760px){.rules{grid-template-columns:1fr}}
+
+  /* ---------- 验收清单 ---------- */
+  .checks{display:grid; grid-template-columns:repeat(2,1fr); gap:10px 28px; counter-reset:c}
+  .check{display:flex; gap:12px; align-items:flex-start; font-size:14.5px; color:var(--ink-2); padding:8px 0}
+  .check i{
+    counter-increment:c; flex:none; width:22px; height:22px; border-radius:6px;
+    background:var(--accent-soft); color:var(--accent-ink);
+    font-size:11.5px; font-weight:700; font-style:normal; display:grid; place-items:center;
+  }
+  @media(max-width:760px){.checks{grid-template-columns:1fr}}
+
+  /* ---------- 提示词卡 ---------- */
+  .prompts{display:grid; grid-template-columns:repeat(2,1fr); gap:16px}
+  .pcard{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); display:flex; flex-direction:column}
+  .pcard-h{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:15px 18px 0}
+  .pcard-h h3{margin:0}
+  .copy{
+    font:inherit; font-size:12.5px; cursor:pointer; flex:none;
+    padding:5px 11px; border-radius:7px; border:1px solid var(--line-2);
+    background:var(--surface); color:var(--muted); transition:.15s;
+  }
+  .copy:hover{border-color:var(--accent); color:var(--accent-ink)}
+  .copy.done{background:var(--ok-soft); border-color:#bef264; color:var(--ok)}
+  .pcard pre{
+    margin:12px 0 0; padding:14px 18px 18px; font-size:13px; line-height:1.65;
+    white-space:pre-wrap; word-break:break-word; color:var(--ink-2);
+    background:#fbfaf8; border-top:1px solid var(--line); border-radius:0 0 var(--radius) var(--radius);
+    flex:1;
+  }
+  @media(max-width:760px){.prompts{grid-template-columns:1fr}}
+
+  /* ---------- 安装步骤 ---------- */
+  .steps{display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:28px}
+  .step{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:22px 24px}
+  .step-n{
+    width:26px; height:26px; border-radius:50%; background:var(--ink); color:#fafaf9;
+    display:grid; place-items:center; font-size:13px; font-weight:650; margin-bottom:12px;
+  }
+  .step p{font-size:14.5px; margin:0}
+  .path-table{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden}
+  table{width:100%; border-collapse:collapse}
+  th,td{padding:13px 18px; text-align:left; font-size:14px; border-bottom:1px solid var(--line)}
+  th{background:#fbfaf8; font-weight:600; color:var(--muted); font-size:12.5px; letter-spacing:.03em}
+  tr:last-child td{border-bottom:0}
+  td code{font-size:12.5px}
+  @media(max-width:760px){.steps{grid-template-columns:1fr}}
+
+  /* ---------- FAQ ---------- */
+  .faq{border-top:1px solid var(--line)}
+  details{border-bottom:1px solid var(--line); padding:4px 0}
+  summary{
+    cursor:pointer; list-style:none; padding:16px 0; font-weight:560; font-size:16px;
+    display:flex; align-items:center; gap:12px; color:var(--ink);
+  }
+  summary::-webkit-details-marker{display:none}
+  summary::before{
+    content:"+"; flex:none; width:20px; color:var(--accent); font-size:19px; font-weight:400;
+    display:grid; place-items:center;
+  }
+  details[open] summary::before{content:"−"}
+  summary:hover{color:var(--accent-ink)}
+  details p{padding:0 0 18px 32px; margin:0; font-size:15px; max-width:760px}
+
+  /* ---------- CTA / footer ---------- */
+  .cta{
+    background:var(--surface); border:1px solid var(--line); border-radius:20px;
+    padding:44px 40px; text-align:center;
+  }
+  .cta h2{margin-bottom:12px}
+  .cta .lede{margin:0 auto 26px}
+  .btns{display:flex; gap:12px; justify-content:center; flex-wrap:wrap}
+  .btn{
+    display:inline-flex; align-items:center; gap:8px; font-size:14.5px; font-weight:540;
+    padding:11px 22px; border-radius:10px; border:1px solid var(--ink); background:var(--ink); color:#fafaf9;
+    transition:.15s;
+  }
+  .btn:hover{background:#292524; text-decoration:none}
+  .btn.ghost{background:var(--surface); color:var(--ink); border-color:var(--line-2)}
+  .btn.ghost:hover{border-color:var(--ink); background:var(--surface)}
+  footer{padding:40px 0 56px; border-top:1px solid var(--line); color:var(--muted); font-size:13.5px}
+  .foot-in{display:flex; flex-wrap:wrap; gap:16px; justify-content:space-between; align-items:center}
+
+  /* ---------- 灯箱 ---------- */
+  .lb{
+    position:fixed; inset:0; z-index:100; display:none; place-items:center; padding:32px;
+    background:rgba(28,25,23,.82); backdrop-filter:blur(4px);
+  }
+  .lb.on{display:grid}
+  .lb img{max-width:100%; max-height:86vh; border-radius:10px; box-shadow:0 24px 70px rgba(0,0,0,.5)}
+  .lb-cap{position:absolute; bottom:26px; left:0; right:0; text-align:center; color:#e7e5e4; font-size:13.5px}
+  .lb-x{position:absolute; top:20px; right:24px; font-size:30px; color:#e7e5e4; cursor:pointer; line-height:1; padding:6px}
+  .lb-x:hover{color:#fff}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="#top"><span class="dot"></span>Studio Portrait Master</a>
+    <div class="nav-links">
+      <a href="#samples">样例</a>
+      <a href="#modes">模式</a>
+      <a href="#rules">规则</a>
+      <a href="#prompts">提示词</a>
+      <a href="#install">安装</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <a class="nav-ext" href="EXAMPLES.md">样例文档 ↗</a>
+  </div>
+</nav>
+
+<main id="top">
+
+  <!-- ================= HERO ================= -->
+  <header class="hero wrap">
+    <div class="hero-top">
+      <span class="pill accent">CODEX SKILL</span>
+      <span class="pill">v1.0.0</span>
+      <span class="pill">MIT License</span>
+    </div>
+    <h1>把「亚洲人物照」<br>生成得像拍的，不像生成的。</h1>
+    <p class="lede">
+      一个专注亚洲人物肖像与合影的生成 Skill。五类人物模式，默认 4:3 画幅、简洁背景、完整露头。
+      内置负向防呆与 8 项质量验收，专门治理塑料皮肤、裁切头顶、手部畸形、复制粘贴式笑容这些 AI 通病。
+    </p>
+    <div class="stats">
+      <div class="stat"><b>5</b><span>人物模式</span></div>
+      <div class="stat"><b>4:3</b><span>默认画幅</span></div>
+      <div class="stat"><b>21</b><span>条负向约束</span></div>
+      <div class="stat"><b>8</b><span>项质量验收</span></div>
+    </div>
+  </header>
+
+  <!-- ================= 样例 ================= -->
+  <section id="samples" class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">生成样例</p>
+      <h2>同一套规则，五种人物</h2>
+      <p class="lede">以下图片全部由本 Skill 的规则驱动生成。点击任意一张可放大查看细节——重点看皮肤纹理、发丝、年龄纹和手部。</p>
+    </div>
+
+    <div class="filters" id="filters">
+      <button class="chip on" data-f="all">全部 9 张</button>
+      <button class="chip" data-f="young">中青年 5 张</button>
+      <button class="chip" data-f="older">中老年 3 张</button>
+      <button class="chip" data-f="child">儿童 1 张</button>
+    </div>
+
+    <div class="gallery" id="gallery">
+      <figure class="shot" data-f="young">
+        <div class="shot-img"><img src="images/young-single-female-sport.jpg" alt="中青年女性单人肖像，运动风，浅色背景棚拍"></div>
+        <div class="shot-body">
+          <div class="shot-mode">young-single</div>
+          <h3>中青年女性 · 运动风</h3>
+          <p>浅色背景棚拍，清爽露齿笑，自然半身构图。</p>
+        </div>
+      </figure>
+
+      <figure class="shot" data-f="young">
+        <div class="shot-img"><img src="images/young-single-female-track.jpg" alt="中青年女性单人肖像，户外运动场，运动装配色"></div>
+        <div class="shot-body">
+          <div class="shot-mode">young-single</div>
+          <h3>中青年女性 · 运动场</h3>
+          <p>户外跑道场景，运动装配色，背景虚化保留天空层次。</p>
+        </div>
+      </figure>
+
+      <figure class="shot" data-f="young">
+        <div class="shot-img"><img src="images/young-single-male.jpg" alt="中青年男性单人肖像，浅蓝衬衫棚拍"></div>
+        <div class="shot-body">
+          <div class="shot-mode">young-single</div>
+          <h3>中青年男性 · 棚拍</h3>
+          <p>浅蓝衬衫，正面略侧，温和表情，眼神光自然。</p>
+        </div>
+      </figure>
+
+      <figure class="shot" data-f="young">
+        <div class="shot-img"><img src="images/young-single-female-dental.jpg" alt="中青年女性单人，口腔医疗场景，胸前防护巾"></div>
+        <div class="shot-body">
+          <div class="shot-mode">young-single</div>
+          <h3>中青年女性 · 口腔场景</h3>
+          <p>医疗场景，牙齿自然亮白，不做荧光白广告牙。</p>
+        </div>
+      </figure>
+
+      <figure class="shot" data-f="young">
+        <div class="shot-img"><img src="images/young-pair.jpg" alt="中青年男女双人合影，浅色简洁背景"></div>
+        <div class="shot-body">
+          <div class="shot-mode">young-pair</div>
+          <h3>中青年双人合影</h3>
+          <p>男女并肩靠肩，两张脸都清晰，表情有细微差异。</p>
+        </div>
+      </figure>
+
+      <figure class="shot" data-f="older">
+        <div class="shot-img"><img src="images/older-pair-outdoor.jpg" alt="中老年夫妻双人合影，公园户外，蓝衬衫配浅色上衣"></div>
+        <div class="shot-body">
+          <div class="shot-mode">older-pair</div>
+          <h3>中老年双人 · 户外</h3>
+          <p>公园场景，年龄感协调，不做过度年轻化。</p>
+        </div>
+      </figure>
+
+      <figure class="shot" data-f="older">
+        <div class="shot-img"><img src="images/older-pair-home.jpg" alt="中老年夫妻双人合影，室内窗边自然光，牵手"></div>
+        <div class="shot-body">
+          <div class="shot-mode">older-pair</div>
+          <h3>中老年双人 · 居家</h3>
+          <p>窗边自然光，毛衣配开衫，牵手表现温馨陪伴。</p>
+        </div>
+      </figure>
+
+      <figure class="shot" data-f="older">
+        <div class="shot-img"><img src="images/older-pair-knit.jpg" alt="中老年夫妻双人合影，室内暖光，深色针织配粉色开衫"></div>
+        <div class="shot-body">
+          <div class="shot-mode">older-pair</div>
+          <h3>中老年双人 · 针织</h3>
+          <p>室内暖光，深色针织配粉色开衫，轻扶肩膀。</p>
+        </div>
+      </figure>
+
+      <figure class="shot" data-f="child">
+        <div class="shot-img"><img src="images/child-blocks.jpg" alt="亚洲男孩单人，室内地板玩彩色积木"></div>
+        <div class="shot-body">
+          <div class="shot-mode">child</div>
+          <h3>儿童 · 积木场景</h3>
+          <p>室内地板场景，姿态活泼符合年龄，无成人化。</p>
+        </div>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ================= 模式 ================= -->
+  <section id="modes" class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">模式路由</p>
+      <h2>先判模式，再填字段</h2>
+      <p class="lede">Skill 会先把请求归入五类之一，再套用对应的人物规范。用户明确指定的年龄、人数、关系、场景，永远优先于默认值。</p>
+    </div>
+    <div class="modes">
+      <div class="mode">
+        <div class="mode-k">young-single</div>
+        <h3>中青年单人</h3>
+        <p>默认 19–40 岁。面孔清爽自然，发型整洁，健康自信。单人通常直视镜头，正面或三分之二侧身。需要突出牙齿时用真实健康亮白，保留牙缝与切端透明感。</p>
+        <div class="mode-n">默认 19–40 岁 · 近景 / 胸像 / 自然半身</div>
+      </div>
+      <div class="mode">
+        <div class="mode-k">young-pair</div>
+        <h3>中青年双人</h3>
+        <p>重点表现关系而非两张脸的堆叠：并肩、轻扶手臂、自然依偎。两人的笑容、眼神和姿势必须有细微差异，拒绝复制粘贴式表情。</p>
+        <div class="mode-n">默认两人 · 两张脸都清晰不失焦</div>
+      </div>
+      <div class="mode">
+        <div class="mode-k">older-single</div>
+        <h3>中老年单人</h3>
+        <p>默认 50–75 岁。重点表现精神好、健康、亲切，不表现病弱憔悴。保留与年龄相符的眼角纹、法令纹和手部质感，但不用夸张皱纹代替真实年龄感。</p>
+        <div class="mode-n">默认 50–75 岁 · 深色或深灰发为主，少量白发</div>
+      </div>
+      <div class="mode">
+        <div class="mode-k">older-pair</div>
+        <h3>中老年双人</h3>
+        <p>夫妻或亲人陪伴，两人年龄感必须协调、处于同一生活阶段。女性不能被生成得过于年轻，否则会破坏关系的可信度。互动用轻扶肩膀、靠肩、牵手。</p>
+        <div class="mode-n">年龄感协调 · 温馨陪伴，不做僵硬合照</div>
+      </div>
+      <div class="mode">
+        <div class="mode-k">child</div>
+        <h3>儿童人物</h3>
+        <p>年龄必须符合用户要求。重点表现天真、健康、活泼、好奇。不用成人化妆、成人姿态、成熟服装或暧昧表达。牙齿保持符合年龄的自然状态。</p>
+        <div class="mode-n">年龄准确 · 动作服装符合年龄 · 禁止成人化</div>
+      </div>
+      <div class="mode">
+        <div class="mode-k" style="color:var(--faint)">out of scope</div>
+        <h3 style="color:var(--muted)">明确不做的事</h3>
+        <p class="muted">不生成海报、广告文案、复杂排版、产品设计、Logo、插画或与人物无关的风景。它只负责干净的人物照片——文案和版式请交给设计工具。</p>
+        <div class="mode-n">输出边界：三类人物照片的生成与编辑</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 规则 ================= -->
+  <section id="rules" class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">核心规则</p>
+      <h2>哪些锁死，哪些放开</h2>
+      <p class="lede">Skill 把字段分成两类：<b>默认稳定</b>的保证质量基线，<b>默认可变</b>的给创作留空间。冲突时按「用户明确要求 &gt; 参考图可辨识特征 &gt; 模式规范 &gt; 统一默认值」处理。</p>
+    </div>
+
+    <div class="rules">
+      <div class="rule-box">
+        <h3><span class="mark y">✓</span>默认稳定（锁死）</h3>
+        <ul>
+          <li>亚洲人物方向、用户指定的年龄段</li>
+          <li>人物数量与人物关系</li>
+          <li>4:3 画幅</li>
+          <li>头部完整露出，保留头顶空间</li>
+          <li>简洁低干扰背景</li>
+          <li>人物优先构图（近景 / 胸像 / 自然半身）</li>
+          <li>中老年女性深色或深灰发为主，仅少量白发</li>
+        </ul>
+      </div>
+      <div class="rule-box">
+        <h3><span class="mark n">✕</span>默认可变（放开）</h3>
+        <ul>
+          <li>具体脸型、五官比例、肤色深浅</li>
+          <li>发型、发长、发色与人物身份</li>
+          <li>服装颜色、材质、季节、职业、生活场景</li>
+          <li>站姿、坐姿、头部角度、手势、人际距离</li>
+          <li>笑容强度、视线方向、细微不对称</li>
+        </ul>
+      </div>
+    </div>
+
+    <div style="height:20px"></div>
+
+    <div class="rule-box">
+      <h3><span class="mark n">✕</span>负向防呆（默认排除）</h3>
+      <ul style="columns:2; column-gap:36px">
+        <li>文字、乱码、字幕、标题、Logo、水印、签名</li>
+        <li>边框、海报版式、拼图、多宫格、分屏、UI 元素</li>
+        <li>欧美或非指定地区的面孔</li>
+        <li>年龄错位、人物数量错误</li>
+        <li>额外背景人物抢主体</li>
+        <li>裁切头顶、裁切下巴</li>
+        <li>脸部被头发完全遮住、道具遮挡五官</li>
+        <li>多余手指、手部融化、额外肢体</li>
+        <li>脸部重影、眼睛数量错误、牙齿数量错误</li>
+        <li>身体互相穿插</li>
+        <li>塑料皮肤、蜡像脸、过度磨皮</li>
+        <li>荧光白牙、统一模板笑容、过度对称</li>
+        <li>重复脸、复制粘贴式人物</li>
+        <li>过饱和花纹、融化的衣服</li>
+        <li>错误季节服装、无来源高光、平光</li>
+        <li>脏色偏、过度 HDR</li>
+        <li>中老年人物病弱、憔悴或过度衰老</li>
+        <li>中老年女性满头白发（除明确要求）</li>
+        <li>儿童成人化、过度化妆、成熟姿态</li>
+        <li>浓重电影感、夸张逆光、强烈胶片颗粒</li>
+        <li>时尚大片风（默认不用）</li>
+      </ul>
+    </div>
+
+    <div style="height:20px"></div>
+
+    <div class="rule-box">
+      <h3><span class="mark y">✓</span>生成后逐项验收</h3>
+      <div class="checks">
+        <div class="check"><i>1</i><span>人物数量、亚洲面孔、年龄段是否正确</span></div>
+        <div class="check"><i>2</i><span>头顶、头发、脸部、下巴是否完整露出</span></div>
+        <div class="check"><i>3</i><span>单人无多余人物，合影每人清晰不融化</span></div>
+        <div class="check"><i>4</i><span>双人关系自然，笑容动作有细微差异</span></div>
+        <div class="check"><i>5</i><span>服装符合季节职业场景，花纹纽扣衣领稳定</span></div>
+        <div class="check"><i>6</i><span>皮肤头发牙齿手部有真实细节，无塑料感</span></div>
+        <div class="check"><i>7</i><span>背景简洁，无文字 Logo 乱码无关人物</span></div>
+        <div class="check"><i>8</i><span>画幅 4:3，构图人物优先</span></div>
+      </div>
+      <p class="muted" style="margin:18px 0 0; font-size:14px">
+        出现明显失败时<b>只针对失败字段做一次定向修正</b>——例如「只修复头部裁切」「只修复手部」「只降低皮肤磨皮感」。绝不在修复时同时改变年龄、人物关系、服装和场景。
+      </p>
+    </div>
+  </section>
+
+  <!-- ================= 提示词 ================= -->
+  <section id="prompts" class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">直接可用</p>
+      <h2>复制就能跑的调用示例</h2>
+      <p class="lede">点击右上角按钮复制。把方括号字段换成你的实际要求，未填写的字段会自动用 Skill 默认值补齐。</p>
+    </div>
+    <div class="prompts" id="prompts">
+      <div class="pcard">
+        <div class="pcard-h"><h3>中老年双人 · 居家</h3><button class="copy">复制</button></div>
+        <pre>使用 $studio-portrait-master，生成一张4:3的中老年亚洲夫妻合影，秋季针织服装，女性深色头发中只有少量白发，室内窗边自然光，牵手或轻扶肩膀，温馨自然，简单背景，头部完整露出，表现健康幸福。</pre>
+      </div>
+      <div class="pcard">
+        <div class="pcard-h"><h3>中青年单人 · 清爽</h3><button class="copy">复制</button></div>
+        <pre>使用 $studio-portrait-master，生成一张4:3的24岁左右东亚女性单人肖像，直视镜头，自然微笑，薄荷绿开衫和米白长裙，春日户外柔和日光，完整露出头部和下巴，清甜自然，真实皮肤纹理。</pre>
+      </div>
+      <div class="pcard">
+        <div class="pcard-h"><h3>儿童 · 公园</h3><button class="copy">复制</button></div>
+        <pre>使用 $studio-portrait-master，生成一张4:3的6岁亚洲男孩照片，夏季公园，明亮自然光，动作和服装符合儿童年龄，天真活泼，不能成人化，头部完整露出，简单背景。</pre>
+      </div>
+      <div class="pcard">
+        <div class="pcard-h"><h3>中青年双人 · 春季</h3><button class="copy">复制</button></div>
+        <pre>使用 $studio-portrait-master，生成一张4:3的中青年亚洲情侣合影，春天公园，女生浅色长裙，男生休闲衬衫，并肩靠肩自然互动，两张脸都清晰，表情有细微差异，简单背景，头部完整露出。</pre>
+      </div>
+      <div class="pcard">
+        <div class="pcard-h"><h3>中老年单人 · 健康形象</h3><button class="copy">复制</button></div>
+        <pre>使用 $studio-portrait-master，生成一张4:3的62岁亚洲男性单人肖像，深色短发少量白发，浅色衬衫，中性干净背景，温和微笑，保留眼角纹和法令纹，精神健康亲切，头部完整露出。</pre>
+      </div>
+      <div class="pcard">
+        <div class="pcard-h"><h3>定向修正（修失败点）</h3><button class="copy">复制</button></div>
+        <pre>保留当前图片的人物身份、年龄、服装、场景、关系和构图，只修改：头顶被裁切。头部完整露出，保持4:3、亚洲人物和简单背景。不要改变其他内容，不增加文字、Logo、水印、额外人物或排版。</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 安装 ================= -->
+  <section id="install" class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">安装</p>
+      <h2>三步启用</h2>
+      <p class="lede">Skill 就是一个带 <code>SKILL.md</code> 的文件夹。复制到技能目录、重开应用、调用。</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-n">1</div>
+        <h3>复制文件夹</h3>
+        <p>把整个 <code>studio-portrait-master</code> 文件夹复制到技能目录，确保 <code>SKILL.md</code> 在文件夹根部。</p>
+      </div>
+      <div class="step">
+        <div class="step-n">2</div>
+        <h3>重新加载</h3>
+        <p>重新打开 Codex 或当前 Agent 应用。新技能没出现在列表时，优先重启应用。</p>
+      </div>
+      <div class="step">
+        <div class="step-n">3</div>
+        <h3>调用</h3>
+        <p>输入 <code>$studio-portrait-master</code>，或直接用自然语言描述人物需求，系统会自动匹配。</p>
+      </div>
+    </div>
+    <div class="path-table">
+      <table>
+        <thead><tr><th>Agent</th><th>技能目录</th></tr></thead>
+        <tbody>
+          <tr><td>Codex（Windows）</td><td><code>%USERPROFILE%\.codex\skills\studio-portrait-master</code></td></tr>
+          <tr><td>Codex（macOS / Linux）</td><td><code>~/.codex/skills/studio-portrait-master</code></td></tr>
+          <tr><td>Claude Code</td><td><code>~/.claude/skills/studio-portrait-master</code></td></tr>
+          <tr><td>团队共享</td><td>放入项目的 <code>.codex/skills/</code>，或打包为团队插件</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ================= FAQ ================= -->
+  <section id="faq" class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">FAQ</p>
+      <h2>常见问题</h2>
+    </div>
+    <div class="faq">
+      <details open>
+        <summary>调用后没有反应？</summary>
+        <p>确认目录名是 <code>studio-portrait-master</code>、文件是 <code>SKILL.md</code> 且位于文件夹根部，然后重启应用。目录层级多包了一层是最常见的原因。</p>
+      </details>
+      <details>
+        <summary>为什么人物长相每次都不一样？</summary>
+        <p>这是默认行为——长相、发型、肤色都属于「默认可变」字段。需要保持同一个人时，在请求里加「保持上一张人物一致」或「同一个人」，并提供参考图。</p>
+      </details>
+      <details>
+        <summary>为什么默认不是全身图？</summary>
+        <p>本 Skill 是人物优先，默认近景、胸像或自然半身，因为人脸细节和关系表现才是重点。需要全身时直接写「全身构图」即可覆盖默认。</p>
+      </details>
+      <details>
+        <summary>能生成带文字的海报吗？</summary>
+        <p>不能，这不在范围内。Skill 只输出干净的人物照片，负向约束里明确排除文字、Logo、水印和海报版式。要排版请把人物层导进 Figma / Photoshop 再合成。</p>
+      </details>
+      <details>
+        <summary>用参考图时怎么防止它抄走版式？</summary>
+        <p>明确说明只参考人物：<code>参考这张图中的人物面孔、年龄感、发型和表现方式，不要复制其中的文字、Logo、卡片、图标、海报排版或背景设计。</code>参考图只在授权范围内提取人物特征，不复制文字与版式。</p>
+      </details>
+      <details>
+        <summary>生成的图有 AI 感，怎么修？</summary>
+        <p>不要重新生成整张。用定向修正模板，只改失败的那一个字段，比如「只降低皮肤磨皮感」「只把头发改成有发束感」「只修复手部」。一次只修一项，避免牵动年龄、服装和场景。</p>
+      </details>
+      <details>
+        <summary>儿童照片怎么避免成人化？</summary>
+        <p>在请求里写明具体年龄，并加上「动作和服装符合儿童年龄，不能成人化」。Skill 的儿童规范会排除成人化妆、成熟姿态和暧昧表达，牙齿也只做符合年龄的自然状态。</p>
+      </details>
+    </div>
+  </section>
+
+  <!-- ================= CTA ================= -->
+  <section class="wrap">
+    <div class="cta">
+      <p class="eyebrow" style="justify-content:center; display:flex">开始使用</p>
+      <h2>把你的下一张人物照，交给规则管</h2>
+      <p class="lede">复制文件夹到技能目录，重开应用，然后用一句话描述你要的人。</p>
+      <div class="btns">
+        <a class="btn" href="EXAMPLES.md">查看样例文档</a>
+        <a class="btn ghost" href="../SKILL.md">阅读 SKILL.md 规则</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap foot-in">
+    <span>Studio Portrait Master v1.0.0 · MIT License</span>
+    <span>三类人物 · 五类模式 · 21 条负向约束 · 8 项质量验收</span>
+  </div>
+</footer>
+
+<!-- 灯箱 -->
+<div class="lb" id="lb">
+  <span class="lb-x" id="lbx">×</span>
+  <img id="lbimg" src="" alt="">
+  <div class="lb-cap" id="lbcap"></div>
+</div>
+
+<script>
+(function(){
+  // ---------- 画廊筛选 ----------
+  var chips = document.querySelectorAll('.chip');
+  var shots = document.querySelectorAll('.shot');
+  chips.forEach(function(ch){
+    ch.addEventListener('click', function(){
+      chips.forEach(function(c){ c.classList.remove('on'); });
+      ch.classList.add('on');
+      var f = ch.dataset.f;
+      shots.forEach(function(s){
+        s.classList.toggle('hide', f !== 'all' && s.dataset.f !== f);
+      });
+    });
+  });
+
+  // ---------- 灯箱 ----------
+  var lb = document.getElementById('lb'),
+      lbimg = document.getElementById('lbimg'),
+      lbcap = document.getElementById('lbcap'),
+      lbx = document.getElementById('lbx');
+  document.querySelectorAll('.shot-img').forEach(function(box){
+    box.addEventListener('click', function(){
+      var img = box.querySelector('img'),
+          shot = box.closest('.shot'),
+          mode = shot.querySelector('.shot-mode').textContent,
+          title = shot.querySelector('h3').textContent;
+      lbimg.src = img.src;
+      lbimg.alt = img.alt;
+      lbcap.textContent = mode + ' · ' + title;
+      lb.classList.add('on');
+    });
+  });
+  function closeLb(){ lb.classList.remove('on'); }
+  lbx.addEventListener('click', closeLb);
+  lb.addEventListener('click', function(e){ if(e.target === lb) closeLb(); });
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape') closeLb();
+  });
+
+  // ---------- 复制提示词 ----------
+  document.querySelectorAll('.copy').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var pre = btn.closest('.pcard').querySelector('pre'),
+          text = pre.textContent;
+      function done(){
+        btn.textContent = '已复制';
+        btn.classList.add('done');
+        setTimeout(function(){ btn.textContent = '复制'; btn.classList.remove('done'); }, 1600);
+      }
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(done).catch(function(){ fallback(text, done); });
+      } else { fallback(text, done); }
+    });
+  });
+  function fallback(text, cb){
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch(e){}
+    document.body.removeChild(ta);
+    cb();
+  }
+
+  // ---------- 导航高亮 ----------
+  var links = document.querySelectorAll('.nav-links a'),
+      secs = document.querySelectorAll('section[id]');
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if(en.isIntersecting){
+        links.forEach(function(l){
+          l.classList.toggle('on', l.getAttribute('href') === '#' + en.target.id);
+        });
+      }
+    });
+  }, { rootMargin: '-64px 0px -70% 0px' });
+  secs.forEach(function(s){ io.observe(s); });
+})();
+</script>
+</body>
+</html>

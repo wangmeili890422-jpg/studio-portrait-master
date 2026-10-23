@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Studio Portrait Master 使用说明</title>
+  <style>
+    :root {
+      --bg: #f5f1eb;
+      --paper: #fffdf9;
+      --ink: #2d2925;
+      --muted: #766f68;
+      --line: #e5ddd3;
+      --accent: #8b6f47;
+      --accent-soft: #f0e6d8;
+      --green: #527467;
+      --green-soft: #e4eee9;
+      --shadow: 0 16px 40px rgba(74, 56, 38, .08);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font: 16px/1.75 "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+    }
+    a { color: var(--accent); }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 32px 20px 64px; }
+    .hero {
+      padding: 42px 42px 36px;
+      color: #fffaf4;
+      background: linear-gradient(135deg, #66513b, #a8845d 65%, #c5a277);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+    }
+    .eyebrow { margin: 0 0 8px; opacity: .78; letter-spacing: .08em; font-size: 13px; }
+    h1, h2, h3 { line-height: 1.3; }
+    h1 { margin: 0 0 12px; font-size: clamp(30px, 5vw, 48px); }
+    .hero p { max-width: 720px; margin: 0; font-size: 18px; opacity: .92; }
+    .version { display: inline-block; margin-top: 22px; padding: 4px 10px; border: 1px solid rgba(255,255,255,.36); border-radius: 999px; font-size: 13px; }
+    section { margin-top: 28px; }
+    .panel, .card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: 0 8px 24px rgba(74, 56, 38, .04);
+    }
+    .panel { padding: 26px; }
+    h2 { margin: 0 0 16px; font-size: 25px; }
+    h3 { margin: 0 0 8px; font-size: 18px; }
+    .muted { color: var(--muted); }
+    .steps, .grid { display: grid; gap: 14px; }
+    .steps { grid-template-columns: repeat(3, 1fr); }
+    .grid { grid-template-columns: repeat(2, 1fr); }
+    .card { padding: 20px; }
+    .num {
+      display: inline-grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      margin-bottom: 10px;
+      border-radius: 50%;
+      color: #fff;
+      background: var(--accent);
+      font-weight: 700;
+    }
+    code, pre {
+      font-family: Consolas, "SFMono-Regular", monospace;
+      font-size: 14px;
+    }
+    code {
+      padding: 2px 6px;
+      border-radius: 6px;
+      color: #634d34;
+      background: var(--accent-soft);
+    }
+    pre {
+      position: relative;
+      overflow: auto;
+      margin: 12px 0 0;
+      padding: 16px;
+      color: #3f352b;
+      background: #f5eee6;
+      border: 1px solid #eadccd;
+      border-radius: 12px;
+      white-space: pre-wrap;
+    }
+    .tag {
+      display: inline-block;
+      margin: 3px 4px 3px 0;
+      padding: 3px 9px;
+      color: var(--green);
+      background: var(--green-soft);
+      border-radius: 999px;
+      font-size: 13px;
+    }
+    .notice {
+      padding: 16px 18px;
+      border-left: 4px solid var(--accent);
+      color: #5d4a36;
+      background: var(--accent-soft);
+      border-radius: 10px;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 12px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { color: var(--muted); font-weight: 600; }
+    ul { margin: 8px 0 0; padding-left: 22px; }
+    footer { margin-top: 28px; color: var(--muted); font-size: 13px; }
+    @media (max-width: 720px) {
+      .wrap { padding: 16px 12px 40px; }
+      .hero { padding: 28px 24px; border-radius: 18px; }
+      .steps, .grid { grid-template-columns: 1fr; }
+      .panel { padding: 20px; }
+      table { display: block; overflow-x: auto; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="hero">
+      <p class="eyebrow">CODEX SKILL · VERSION 1.0.0</p>
+      <h1>Studio Portrait Master</h1>
+      <p>亚洲人物单人、合影与儿童照片生成 Skill。默认 4:3、简单背景、完整露头和自然可信的人物状态。</p>
+      <span class="version">可直接调用 · 支持生图</span>
+    </header>
+
+    <section class="panel">
+      <h2>三步启用</h2>
+      <div class="steps">
+        <article class="card">
+          <span class="num">1</span>
+          <h3>确认技能目录</h3>
+          <p class="muted">Windows 个人技能目录：</p>
+          <pre>C:\Users\你的用户名\.codex\skills\studio-portrait-master</pre>
+          <p>文件夹内必须包含 <code>SKILL.md</code>。</p>
+        </article>
+        <article class="card">
+          <span class="num">2</span>
+          <h3>重新加载 Codex</h3>
+          <p>安装后重新打开 Codex，或重启当前应用。新技能没有出现在列表时，优先重启 Codex。</p>
+        </article>
+        <article class="card">
+          <span class="num">3</span>
+          <h3>在消息中调用</h3>
+          <pre>使用 $studio-portrait-master 生成一张中青年夫妻合影。</pre>
+          <p>也可以直接用自然语言描述，系统会自动匹配本 Skill。</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>支持的五种模式</h2>
+      <table>
+        <thead><tr><th>模式</th><th>默认表现</th></tr></thead>
+        <tbody>
+          <tr><td>中青年单人</td><td>清爽、亲和、自信；正面或轻微侧身，近景、胸像或自然半身。</td></tr>
+          <tr><td>中青年合影</td><td>两位亚洲人物自然靠近、并肩或轻微互动，两张脸都清晰。</td></tr>
+          <tr><td>中老年单人</td><td>精神健康、成熟可信；保留自然年龄纹理，头发以深色为主、少量白发。</td></tr>
+          <tr><td>中老年合影</td><td>夫妻或亲人温馨陪伴，年龄感协调，不做病弱或过度衰老效果。</td></tr>
+          <tr><td>儿童人物</td><td>年龄准确、天真健康、动作和服装符合儿童年龄，不成人化。</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="panel">
+      <h2>统一默认规则</h2>
+      <span class="tag">亚洲面孔</span>
+      <span class="tag">4:3 画幅</span>
+      <span class="tag">头部完整露出</span>
+      <span class="tag">简单背景</span>
+      <span class="tag">人物优先</span>
+      <span class="tag">服装可变</span>
+      <span class="tag">季节可变</span>
+      <span class="tag">减少 AI 感</span>
+      <ul>
+        <li>头顶、头发、脸部和下巴尽量完整露出，保留适当头顶空间。</li>
+        <li>长相、发型、肤色、服装和具体人物不会固定；只有明确说“同一个人”才锁定身份。</li>
+        <li>默认使用明亮、柔和、健康、可信的商业人物摄影，不主动加入海报文字或广告版式。</li>
+        <li>以近景、胸像或自然半身为主；只有明确要求时才使用中景、远景或全身。</li>
+      </ul>
+    </section>
+
+    <section class="panel">
+      <h2>可以直接复制的调用示例</h2>
+      <div class="grid">
+        <article class="card">
+          <h3>中青年合影</h3>
+          <pre>使用 $studio-portrait-master，生成一张4:3的中青年亚洲夫妻合影，春天公园，女生浅色长裙，男生休闲衬衫，简单背景，头部完整露出，表现健康、开心、幸福。</pre>
+        </article>
+        <article class="card">
+          <h3>中青年单人</h3>
+          <pre>使用 $studio-portrait-master，生成一张4:3的20岁左右东亚女孩单人肖像，直视镜头，自然灿烂露齿笑，重点展示健康明亮的牙齿，头部完整露出。</pre>
+        </article>
+        <article class="card">
+          <h3>中老年合影</h3>
+          <pre>使用 $studio-portrait-master，生成一张4:3的中老年亚洲夫妻合影，秋季针织服装，深色头发中只有少量白发，温馨自然，简单背景，头部完整露出。</pre>
+        </article>
+        <article class="card">
+          <h3>儿童人物</h3>
+          <pre>使用 $studio-portrait-master，生成一张4:3的6岁亚洲男孩照片，夏季公园，明亮自然，动作符合儿童年龄，不能成人化，头部完整露出。</pre>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>使用参考图时</h2>
+      <div class="notice">请明确说明：只参考人物，不参考文字和版式。</div>
+      <pre>参考这张图中的人物面孔、年龄感、发型和表现方式，不要复制其中的文字、Logo、橙色卡片、图标、海报排版或背景设计。</pre>
+    </section>
+
+    <section class="panel">
+      <h2>同事如何使用</h2>
+      <ol>
+        <li>把整个 <code>studio-portrait-master</code> 文件夹复制到同事电脑的个人技能目录：<code>%USERPROFILE%\.codex\skills\</code>。</li>
+        <li>重新打开 Codex。</li>
+        <li>在新对话输入 <code>$studio-portrait-master</code>，或直接描述人物需求。</li>
+      </ol>
+      <p class="muted">如果是团队长期维护，建议把 Skill 放入项目的 <code>.codex/skills/</code>，或进一步打包为团队插件。</p>
+    </section>
+
+    <section class="panel">
+      <h2>常见问题</h2>
+      <h3>调用后没有反应？</h3>
+      <p>确认目录名称是 <code>studio-portrait-master</code>，文件名是 <code>SKILL.md</code>，然后重启 Codex。</p>
+      <h3>为什么人物长相每次不同？</h3>
+      <p>这是默认行为。需要保持同一个人时，在请求中加上“保持上一张人物一致”并提供参考图。</p>
+      <h3>为什么不是全身图？</h3>
+      <p>本 Skill 默认人物优先，以近景、胸像和自然半身为主。需要全身时直接写“全身构图”。</p>
+      <h3>能不能生成文字海报？</h3>
+      <p>不属于本 Skill 的范围。本 Skill 只生成干净人物照片，不负责海报文字和排版。</p>
+    </section>
+
+    <footer>
+      <p>本说明书对应 Studio Portrait Master 1.0.0。官方参考：<a href="https://learn.chatgpt.com/docs/build-skills" target="_blank" rel="noreferrer">Build skills</a>、<a href="https://developers.openai.com/plugins/build/plugins" target="_blank" rel="noreferrer">Package your plugin</a>。</p>
+    </footer>
+  </main>
+</body>
+</html>

@@ -1,0 +1,14 @@
+# 统一换行符策略：仓库内存 LF，签出时按平台转换。
+# 避免 Windows / macOS / Linux 用户互相 pull 时整文件 diff 刷屏。
+* text=auto eol=lf
+
+# 明确二进制，禁止任何换行转换或 diff 尝试
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary

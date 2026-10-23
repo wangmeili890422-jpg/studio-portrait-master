@@ -1,0 +1,8 @@
+interface:
+  display_name: "Studio Portrait Master"
+  short_description: "亚洲人物单人、合影与儿童照片"
+  brand_color: "#8B6F47"
+  default_prompt: "使用 $studio-portrait-master 生成一张4:3、亚洲面孔、头部完整露出且自然可信的人物照片。"
+
+policy:
+  allow_implicit_invocation: true
